@@ -258,3 +258,85 @@ WINDOW
 			sample_date ASC ROWS BETWEEN 1 PRECEDING
             AND 1 PRECEDING
     );
+
+-- FOLLOWING 키워드를 사용하여 프레임을 뒤로 이동
+SELECT
+	ls.sample_date AS cur_date,
+    ls.load_val AS cur_load,
+    MIN(ls.sample_date) OVER W AS next_date,
+    MIN(ls.load_val) OVER W AS next_load
+FROM loadsample ls
+WINDOW
+	W AS (
+		ORDER BY
+			ls.sample_date ASC ROWS BETWEEN 1 FOLLOWING
+            AND 1 FOLLOWING
+    );
+
+-- 1개 행에 집계 함수를 적용 WITH FRAME
+-- 이것으로도 결과는 MIN과 동일
+SELECT
+	ls.sample_date AS cur_date,
+    ls.load_val AS cur_load,
+    MAX(ls.sample_date) OVER W AS latest_date,
+    MAX(ls.load_val) OVER W AS latest_load
+FROM loadsample ls
+WINDOW
+	W AS (
+		ORDER BY
+			ls.sample_date ASC ROWS BETWEEN 1 PRECEDING
+            AND 1 PRECEDING
+    );
+
+-- 행이 아니라 1일 전, 2일 전 처럼 열의 값 기준으로 프레임 설정
+-- ROWS 대신 RANGE 키워드 사용
+-- RANGE 사용 시 열의 자료형을 고려
+-- 주로 숫자형이나 날짜/시간형에만 사용
+SELECT
+	ls.sample_date AS cur_date,
+    ls.load_val As cur_load,
+    MIN(ls.sample_date) OVER (
+		ORDER BY
+			ls.sample_date ASC RANGE BETWEEN INTERVAL '1' DAY PRECEDING
+            AND INTERVAL '1' DAY PRECEDING
+    ) AS day1_before,
+    MIN(ls.load_val) OVER (
+		ORDER BY
+			ls.sample_date ASC RANGE BETWEEN INTERVAL '1' DAY PRECEDING
+            AND INTERVAL '1' DAY PRECEDING
+    ) AS load_day1_before
+FROM loadsample ls;
+
+-- BETWEEN으로 지정하는 행 위치를 '1개 행 전', '2개 행 전', '3개 행 전'
+SELECT
+	ls.sample_date AS cur_date,
+    MIN(ls.sample_date) OVER (
+		ORDER BY
+			ls.sample_date ASC ROWS BETWEEN 1 PRECEDING
+            AND 1 PRECEDING
+    ) AS latest_1,
+    MIN(ls.sample_date) OVER (
+		ORDER BY
+			ls.sample_date ASC ROWS BETWEEN 2 PRECEDING
+            AND 2 PRECEDING
+    ) AS LATEST_2,
+    MIN(ls.sample_date) OVER (
+		ORDER BY
+			ls.sample_date ASC ROWS BETWEEN 3 PRECEDING
+            AND 3 PRECEDING
+    ) AS latest_3
+FROM loadsample ls;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
